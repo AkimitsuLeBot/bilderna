@@ -29,9 +29,9 @@ fn total_length(paths: &Vec<(i32, i32)>) -> f32 {
 
 fn class_icon(class: &str) -> &RgbaImage {
     (match class {
-        "Archer" => &assets::ARCHER_ICON as &RgbaImage,
-        "Knight" => &assets::KNIGHT_ICON as &RgbaImage,
-        "Wizard" => &assets::WIZARD_ICON as &RgbaImage,
+        "ARCHER" => &assets::ARCHER_ICON as &RgbaImage,
+        "KNIGHT" => &assets::KNIGHT_ICON as &RgbaImage,
+        "MAGE" => &assets::WIZARD_ICON as &RgbaImage,
         _ => &assets::TRAVELER_ICON as &RgbaImage
     }) as &RgbaImage
 }
