@@ -1,11 +1,11 @@
 {
 	"cities" : {
-		"Hamnen": [770,500],
-		"Kvarnen": [1290,525],
-		"Herrgården": [1280, 837],
-		"Slotet": [1750, 643],
-		"Jägarens": [1480,360],
-		"Timmerjacka": [1550,25]
+		"Hamnen": [710,530],
+		"Kvarnen": [1120,420],
+		"Herrgården": [1160, 818],
+		"Slotet": [1620, 545],
+		"Jägarens": [1632, 300],
+		"Timmerjacka": [1550, 5]
 	},
 	"paths": {
 		"Hamnen:Jägarens": [
@@ -30,7 +30,7 @@
 			[1410,426],
 			[1286, 492]
 		],
-		"Jägarens:TimmerJacka": [
+		"Jägarens:Timmerjacka": [
 			[1482,288],
 			[1484,236],
 			[1518,214],

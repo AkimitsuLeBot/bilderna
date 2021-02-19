@@ -1,16 +1,23 @@
-use crate::drawer::{draw_traveling, draw_in_city};
+use actix_web::{HttpServer, web, App, middleware::Logger};
+
+use crate::routes::{traveling, in_city};
 
 pub mod assets;
 pub mod drawer;
+mod routes;
 
-fn main() {
-    draw_traveling("TimmerJacka", "Jägarens", 65, "Traveler").unwrap_or_else(|e| {
-        println!("{}", e);
-        assets::MAP.clone()
-    }).save("traveling.png").unwrap();
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
 
-    draw_in_city("Jägarens", "Knight").unwrap_or_else(|e| {
-        println!("{}", e);
-        assets::MAP.clone()
-    }).save("in_city.png").unwrap();
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
+    HttpServer::new(|| {
+        App::new()
+            .route("/traveling", web::post().to(traveling))
+            .route("/in_city", web::post().to(in_city))
+            .wrap(Logger::new("%r {%T} %s: %{error}o"))
+    })
+        .bind("0.0.0.0:3000")?
+        .run()
+        .await
 }

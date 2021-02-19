@@ -42,7 +42,7 @@ pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, V
     let config = &assets::CITY_CONFIG;
 
     let city_path = config.cities.get(origin).ok_or(format!("Cannot find the city {}", origin))?;
-    overlay(&mut map, class_icon(class), city_path.0 as u32 - 32, city_path.1 as u32);
+    overlay(&mut map, class_icon(class), city_path.0 as u32, city_path.1 as u32);
 
     Ok(map)
 }
