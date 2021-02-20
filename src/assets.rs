@@ -16,7 +16,7 @@ lazy_static! {
 
     pub static ref CITY_CONFIG: Config = serde_json::from_reader(
             BufReader::new(
-                File::open("assets/config.json").expect("Failed to config file")
+                File::open("assets/config.json").expect("Failed to open config file")
             )
         ).expect("Failed to parse json config");
 
