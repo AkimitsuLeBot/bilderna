@@ -5,9 +5,16 @@ use image::imageops::overlay;
 
 use crate::assets;
 
-fn distance(from: &(i32, i32), to: &(i32, i32)) -> f32 {
-    (((from.0 - to.0).pow(2) + (from.1 - to.1).pow(2)) as f32).sqrt()
+trait Distance {
+    fn distance(&self, other: (i32, i32)) -> f32;
 }
+
+impl Distance for (i32, i32) {
+    fn distance(&self, to: (i32, i32)) -> f32 {
+        (((self.0 - to.0).pow(2) + (self.1 - to.1).pow(2)) as f32).sqrt()
+    }
+}
+
 
 fn cut(from: &(i32, i32), to: &(i32, i32), cut: f32) -> (i32, i32) {
     let x_diff = (to.0 - from.0) as f32;
@@ -22,18 +29,17 @@ fn total_length(paths: &Vec<(i32, i32)>) -> f32 {
     paths
         .iter()
         .zip(paths.iter().skip(1))
-        .map(|(from, to)|
-            distance(from, to)
-        ).sum()
+        .map(|(from, to)| from.distance(*to))
+        .sum()
 }
 
 fn class_icon(class: &str) -> &RgbaImage {
-    (match class {
+    match class {
         "ARCHER" => &assets::ARCHER_ICON as &RgbaImage,
         "KNIGHT" => &assets::KNIGHT_ICON as &RgbaImage,
         "MAGE" => &assets::WIZARD_ICON as &RgbaImage,
         _ => &assets::TRAVELER_ICON as &RgbaImage
-    }) as &RgbaImage
+    }
 }
 
 pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
@@ -66,7 +72,7 @@ pub fn draw_traveling(origin: &str, destination: &str, progress: u8, class: &str
     let mut max_dist = total * (progress as f32) / 100.0;
 
     path.iter().zip(path.iter().skip(1)).for_each(|(from, to)| {
-        let dist = distance(from, to);
+        let dist = from.distance(*to);
         if max_dist > 0.0 {
             if dist > max_dist {
                 let shorten = max_dist / dist;
@@ -79,7 +85,6 @@ pub fn draw_traveling(origin: &str, destination: &str, progress: u8, class: &str
             }
         }
     });
-
 
     Ok(map)
 }
