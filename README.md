@@ -36,7 +36,7 @@ Valid city names are:
 - Timmerjacka
 
 **POST: /in_city**
-```json
+```json5
 {
   "origin" : "Timmerjacka", // Valid city name
   "class" : "KNIGHT"// valid class name
@@ -44,7 +44,7 @@ Valid city names are:
 ```
 
 **POST: /traveling**
-```json
+```json5
 {
   "origin": "Hamnen", // Valid city name
   "destination": "Kvarnen",// Valid city name
