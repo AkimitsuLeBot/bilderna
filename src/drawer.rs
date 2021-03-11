@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 
+use chrono::{Datelike, DateTime, Timelike, Utc};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use image::imageops::overlay;
 
@@ -13,6 +14,14 @@ trait TupleMaths {
 
 trait Distance {
     fn distance(&self) -> f32;
+}
+
+trait Winter {
+    fn is_winter(&self) -> bool;
+}
+
+trait Night {
+    fn is_night(&self) -> bool;
 }
 
 impl TupleMaths for (i32, i32) {
@@ -30,7 +39,7 @@ impl TupleMaths for (i32, i32) {
     }
 }
 
-impl Distance for Vec<(i32, i32)>  {
+impl Distance for Vec<(i32, i32)> {
     fn distance(&self) -> f32 {
         self
             .iter()
@@ -40,7 +49,30 @@ impl Distance for Vec<(i32, i32)>  {
     }
 }
 
+impl Winter for DateTime<Utc> {
+    // Winter is from the 21 of December, but we'll make it a bit longer
+    // and it ends the 20th of march
+    fn is_winter(&self) -> bool {
+        self.month() >= 12 || (self.month() < 3 || (self.month() == 3 && self.day() <= 20))
+    }
+}
 
+impl Night for DateTime<Utc> {
+    fn is_night(&self) -> bool {
+        self.hour() >= 22 || self.hour() <= 5
+    }
+}
+
+fn map_image() -> RgbaImage {
+    let today = Utc::now();
+    let night = today.is_night();
+    let winter = today.is_winter();
+    return if night {
+        if winter { assets::MAP_WINTER_NIGHT.clone() } else { assets::MAP_NIGHT.clone() }
+    } else {
+        if winter { assets::MAP_WINTER.clone() } else { assets::MAP.clone() }
+    };
+}
 
 fn class_icon(class: &str) -> &RgbaImage {
     match class {
@@ -52,7 +84,7 @@ fn class_icon(class: &str) -> &RgbaImage {
 }
 
 pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
-    let mut map = assets::MAP.clone();
+    let mut map = map_image();
 
     let config = &assets::CITY_CONFIG;
 
@@ -63,7 +95,7 @@ pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, V
 }
 
 pub fn draw_traveling(origin: &str, destination: &str, progress: u8, class: &str) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
-    let mut map = assets::MAP.clone();
+    let mut map = map_image();
     let config = &assets::CITY_CONFIG;
 
     let (key, reverse) = match origin.cmp(destination) {
@@ -86,7 +118,7 @@ pub fn draw_traveling(origin: &str, destination: &str, progress: u8, class: &str
             if dist > max_dist {
                 let shorten = max_dist / dist;
                 let nw_to = from.cut(to, shorten);
-                overlay(&mut map, class_icon(class), nw_to.0 as u32 - 32, nw_to.1 as u32 - 32);
+                overlay(&mut map, class_icon(class), nw_to.0 as u32 - 16, nw_to.1 as u32 - 16);
                 max_dist = 0.0;
             } else {
                 max_dist -= dist;
