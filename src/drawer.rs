@@ -65,13 +65,13 @@ impl Night for DateTime<Utc> {
 
 fn map_image() -> RgbaImage {
     let today = Utc::now();
-    let night = today.is_night();
-    let winter = today.is_winter();
-    return if night {
-        if winter { assets::MAP_WINTER_NIGHT.clone() } else { assets::MAP_NIGHT.clone() }
-    } else {
-        if winter { assets::MAP_WINTER.clone() } else { assets::MAP.clone() }
-    };
+    let flags = (today.is_night() as i32) + (today.is_winter() as i32) * 2;
+    match flags {
+        0 => assets::MAP.clone(),
+        1 => assets::MAP_NIGHT.clone(),
+        2 => assets::MAP_WINTER.clone(),
+        _ => assets::MAP_WINTER_NIGHT.clone()
+    }
 }
 
 fn class_icon(class: &str) -> &RgbaImage {
