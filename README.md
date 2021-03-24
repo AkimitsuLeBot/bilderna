@@ -34,6 +34,14 @@ Valid city names are:
 - Slotet
 - Jägarens
 - Timmerjacka
+- Ängen
+- Havetgrandsen
+- Oas
+- Ökenstad
+
+The generated map will be different based on the local time (UTC 0), and the season.
+There is a winter map, and a summer map.
+There is a night map and a day map.
 
 **POST: /in_city**
 ```json5
