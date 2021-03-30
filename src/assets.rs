@@ -24,6 +24,18 @@ lazy_static! {
         .expect("Failed to load map")
         .to_rgba8();
 
+    pub static ref MAP_NIGHT : RgbaImage = load_from_memory(include_bytes!("../assets/map_night.png"))
+        .expect("Failed to load night map")
+        .to_rgba8();
+
+    pub static ref MAP_WINTER : RgbaImage = load_from_memory(include_bytes!("../assets/map_winter.png"))
+        .expect("Failed to load winter map")
+        .to_rgba8();
+
+    pub static ref MAP_WINTER_NIGHT : RgbaImage = load_from_memory(include_bytes!("../assets/map_winter_night.png"))
+        .expect("Failed to load night winter map")
+        .to_rgba8();
+
     pub static ref ARCHER_ICON : RgbaImage = load_from_memory(include_bytes!("../assets/archer.png"))
         .expect("Failed to load map")
         .to_rgba8();
