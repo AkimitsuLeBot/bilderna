@@ -50,3 +50,7 @@ pub fn in_city(info: web::Json<InCityInfo>) -> HttpResponse {
         .map(send_image)
         .unwrap_or_else(|e| HttpResponse::BadRequest().header("error", e).finish())
 }
+
+pub fn ping() -> HttpResponse {
+    HttpResponse::from("Pong")
+}

@@ -6,11 +6,16 @@ COPY . .
 
 RUN cargo install --path .
 
+RUN apt-get update && apt-get install -y curl
+
 # Bundle phase
 FROM debian:buster-slim
 
 COPY --from=builder /usr/local/cargo/bin/bilderna /usr/local/bin/bilderna
 
 COPY ./assets ./assets
+
+HEALTHCHECK --interval=5m --timeout=3s \
+    CMD curl -f http://localhost:3000/ping || exit 1
 
 CMD ["bilderna"]

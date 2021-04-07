@@ -1,6 +1,6 @@
 use actix_web::{HttpServer, web, App, middleware::Logger};
 
-use crate::routes::{traveling, in_city};
+use crate::routes::{traveling, in_city, ping};
 
 pub mod assets;
 pub mod drawer;
@@ -15,6 +15,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .route("/traveling", web::post().to(traveling))
             .route("/in_city", web::post().to(in_city))
+            .route("/ping", web::get().to(ping))
             .wrap(Logger::new("%r {%T} %s: %{error}o"))
     })
         .bind("0.0.0.0:3000")?
