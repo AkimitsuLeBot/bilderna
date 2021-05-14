@@ -1,7 +1,7 @@
-use std::cmp::Ordering;
+use std::cmp::{min, Ordering};
 
 use chrono::{Datelike, DateTime, Timelike, Utc};
-use image::{ImageBuffer, Rgba, RgbaImage};
+use image::{ImageBuffer, Pixel, Rgba, RgbaImage};
 use image::imageops::overlay;
 
 use crate::assets;
@@ -21,7 +21,7 @@ trait Winter {
 }
 
 trait Night {
-    fn is_night(&self) -> bool;
+    fn night_progress(&self) -> f32;
 }
 
 impl TupleMaths for (i32, i32) {
@@ -58,20 +58,59 @@ impl Winter for DateTime<Utc> {
 }
 
 impl Night for DateTime<Utc> {
-    fn is_night(&self) -> bool {
-        self.hour() >= 22 || self.hour() <= 5
+    fn night_progress(&self) -> f32 {
+        let night_start = 20.0;
+        let night_max = 23.0;
+        let day_start = 5.0;
+        let day_max = 8.0;
+
+        let current_hour = (self.hour() as f32) + (self.minute() as f32) / 60.0;
+
+        match current_hour {
+            h if h >= night_max || h <= day_start => 1.0,
+            h if h >= night_start => ((h - night_start) as f32) / ((night_max - night_start) as f32),
+            h if h <= day_max => ((day_max - h) as f32) / ((day_max - day_start) as f32),
+            _ => 0.0
+        }
     }
 }
 
-fn map_image() -> RgbaImage {
-    let today = Utc::now();
-    let flags = (today.is_night() as i32) + (today.is_winter() as i32) * 2;
-    match flags {
-        0 => assets::MAP.clone(),
-        1 => assets::MAP_NIGHT.clone(),
-        2 => assets::MAP_WINTER.clone(),
-        _ => assets::MAP_WINTER_NIGHT.clone()
+fn seasonal_map(date: DateTime<Utc>) -> RgbaImage {
+    if date.is_winter() { assets::MAP_WINTER.clone() } else { assets::MAP.clone() }
+}
+
+fn mask_map(date: DateTime<Utc>, base_map: &mut RgbaImage) {
+    let gradient_value = date.night_progress();
+    if gradient_value == 0.0 {
+        return;
     }
+
+    let gradient_start = Rgba([5, 2, 6, 0]);
+    let mut gradient_end = Rgba([0, 1, 3, 240]);
+
+    let mut mask = (&assets::MAP_MASK as &RgbaImage).pixels();
+
+    gradient_end.apply2(&gradient_start, |a, b| {
+        ((b as f32) + (((a as f32) - (b as f32)) * gradient_value).round()) as u8
+    });
+    let alpha = gradient_end.channels()[3];
+
+
+    // let current_gradient = (gradient_end - gradient_start) / gradient_value;
+    base_map.pixels_mut().for_each(|p| {
+        let mut blend = mask.next().unwrap().clone();
+        let prev_alpha = blend.channels()[3];
+        blend.blend(&gradient_end);
+        blend.channels_mut()[3] = min(alpha, prev_alpha);
+        p.blend(&blend);
+    });
+}
+
+fn map_image() -> RgbaImage {
+    let now = Utc::now();
+    let mut season = seasonal_map(now);
+    mask_map(now, &mut season);
+    season
 }
 
 fn class_icon(class: &str) -> &RgbaImage {
@@ -85,6 +124,7 @@ fn class_icon(class: &str) -> &RgbaImage {
 
 pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
     let mut map = map_image();
+
 
     let config = &assets::CITY_CONFIG;
 
