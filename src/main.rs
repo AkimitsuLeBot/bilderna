@@ -16,7 +16,7 @@ async fn main() -> std::io::Result<()> {
             .route("/traveling", web::post().to(traveling))
             .route("/in_city", web::post().to(in_city))
             .route("/ping", web::get().to(ping))
-            .wrap(Logger::new("%r {%T} %s: %{error}o"))
+            .wrap(Logger::new("%r {%T} %s: %{error}o").exclude("/ping"))
     })
         .bind("0.0.0.0:3000")?
         .run()
