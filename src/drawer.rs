@@ -7,13 +7,13 @@ use image::imageops::overlay;
 use crate::assets;
 
 trait TupleMaths {
-    fn distance(&self, other: &(i32, i32)) -> f32;
+    fn distance(&self, other: &(i64, i64)) -> f64;
 
-    fn cut(&self, other: &(i32, i32), position: f32) -> (i32, i32);
+    fn cut(&self, other: &(i64, i64), position: f64) -> (i64, i64);
 }
 
 trait Distance {
-    fn distance(&self) -> f32;
+    fn distance(&self) -> f64;
 }
 
 trait Winter {
@@ -24,23 +24,23 @@ trait Night {
     fn night_progress(&self) -> f32;
 }
 
-impl TupleMaths for (i32, i32) {
-    fn distance(&self, to: &(i32, i32)) -> f32 {
-        (((self.0 - to.0).pow(2) + (self.1 - to.1).pow(2)) as f32).sqrt()
+impl TupleMaths for (i64, i64) {
+    fn distance(&self, to: &(i64, i64)) -> f64 {
+        (((self.0 - to.0).pow(2) + (self.1 - to.1).pow(2)) as f64).sqrt()
     }
 
-    fn cut(&self, to: &(i32, i32), cut: f32) -> (i32, i32) {
-        let x_diff = (to.0 - self.0) as f32;
-        let y_diff = (to.1 - self.1) as f32;
+    fn cut(&self, to: &(i64, i64), cut: f64) -> (i64, i64) {
+        let x_diff = (to.0 - self.0) as f64;
+        let y_diff = (to.1 - self.1) as f64;
         let steep = y_diff / x_diff;
-        let nwx = self.0 as f32 + x_diff * cut;
-        let nwy = self.1 as f32 + (x_diff * cut) * steep;
-        (nwx.round() as i32, nwy.round() as i32)
+        let nwx = self.0 as f64 + x_diff * cut;
+        let nwy = self.1 as f64 + (x_diff * cut) * steep;
+        (nwx.round() as i64, nwy.round() as i64)
     }
 }
 
-impl Distance for Vec<(i32, i32)> {
-    fn distance(&self) -> f32 {
+impl Distance for Vec<(i64, i64)> {
+    fn distance(&self) -> f64 {
         self
             .iter()
             .zip(self.iter().skip(1))
@@ -129,7 +129,7 @@ pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, V
     let config = &assets::CITY_CONFIG;
 
     let city_path = config.cities.get(origin).ok_or(format!("Cannot find the city {}", origin))?;
-    overlay(&mut map, class_icon(class), city_path.0 as u32, city_path.1 as u32);
+    overlay(&mut map, class_icon(class), city_path.0, city_path.1);
 
     Ok(map)
 }
@@ -150,7 +150,7 @@ pub fn draw_traveling(origin: &str, destination: &str, progress: u8, class: &str
         path.reverse();
     }
     let total = path.distance();
-    let mut max_dist = total * (progress as f32) / 100.0;
+    let mut max_dist = total * (progress as f64) / 100.0;
 
     path.iter().zip(path.iter().skip(1)).for_each(|(from, to)| {
         let dist = from.distance(to);
@@ -158,7 +158,7 @@ pub fn draw_traveling(origin: &str, destination: &str, progress: u8, class: &str
             if dist > max_dist {
                 let shorten = max_dist / dist;
                 let nw_to = from.cut(to, shorten);
-                overlay(&mut map, class_icon(class), nw_to.0 as u32 - 16, nw_to.1 as u32 - 16);
+                overlay(&mut map, class_icon(class), nw_to.0 - 16, nw_to.1 - 16);
                 max_dist = 0.0;
             } else {
                 max_dist -= dist;

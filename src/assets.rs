@@ -8,8 +8,8 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    pub cities: HashMap<String, (i32, i32)>,
-    pub paths: HashMap<String, Vec<(i32, i32)>>,
+    pub cities: HashMap<String, (i64, i64)>,
+    pub paths: HashMap<String, Vec<(i64, i64)>>,
 }
 
 lazy_static! {

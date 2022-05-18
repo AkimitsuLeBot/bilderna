@@ -1,3 +1,4 @@
+use std::io::Cursor;
 use actix_web::{HttpResponse, web};
 use image::{DynamicImage, ImageBuffer, Rgba};
 use serde::Deserialize;
@@ -20,7 +21,7 @@ pub struct InCityInfo {
 
 fn send_image(img: ImageBuffer<Rgba<u8>, Vec<u8>>) -> HttpResponse {
     let mut bytes: Vec<u8> = Vec::new();
-    DynamicImage::ImageRgba8(img).write_to(&mut bytes, image::ImageOutputFormat::Png).map(|_| {
+    DynamicImage::ImageRgba8(img).write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png).map(|_| {
         HttpResponse::Ok().content_type("image/png").body(
             bytes
         )
