@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpResponse, Responder};
 use image::{DynamicImage, ImageBuffer, Rgba};
 use serde::Deserialize;
 use std::io::Cursor;
@@ -26,15 +26,15 @@ fn send_image(img: ImageBuffer<Rgba<u8>, Vec<u8>>) -> HttpResponse {
         .map(|_| HttpResponse::Ok().content_type("image/png").body(bytes))
         .unwrap_or_else(|e| {
             HttpResponse::InternalServerError()
-                .header("error", e.to_string())
+                .append_header(("error", e.to_string()))
                 .finish()
         })
 }
 
-pub fn traveling(info: web::Json<TravelingInfo>) -> HttpResponse {
+pub async fn traveling(info: web::Json<TravelingInfo>) -> impl Responder {
     if info.progress > 100 {
         return HttpResponse::BadRequest()
-            .header("error", "Cannot have a progress larger than 100")
+            .append_header(("error", "Cannot have a progress larger than 100"))
             .finish();
     }
 
@@ -45,15 +45,23 @@ pub fn traveling(info: web::Json<TravelingInfo>) -> HttpResponse {
         info.class.as_str(),
     )
     .map(send_image)
-    .unwrap_or_else(|e| HttpResponse::BadRequest().header("error", e).finish())
+    .unwrap_or_else(|e| {
+        HttpResponse::BadRequest()
+            .append_header(("error", e))
+            .finish()
+    })
 }
 
-pub fn in_city(info: web::Json<InCityInfo>) -> HttpResponse {
+pub async fn in_city(info: web::Json<InCityInfo>) -> impl Responder {
     draw_in_city(info.origin.as_str(), info.class.as_str())
         .map(send_image)
-        .unwrap_or_else(|e| HttpResponse::BadRequest().header("error", e).finish())
+        .unwrap_or_else(|e| {
+            HttpResponse::BadRequest()
+                .append_header(("error", e))
+                .finish()
+        })
 }
 
-pub fn ping() -> HttpResponse {
-    HttpResponse::from("Pong")
+pub async fn ping() -> impl Responder {
+    HttpResponse::Ok().body("Pong")
 }
