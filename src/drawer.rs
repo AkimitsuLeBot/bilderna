@@ -1,8 +1,8 @@
 use std::cmp::{min, Ordering};
 
-use chrono::{Datelike, DateTime, Timelike, Utc};
-use image::{ImageBuffer, Pixel, Rgba, RgbaImage};
+use chrono::{DateTime, Datelike, Timelike, Utc};
 use image::imageops::overlay;
+use image::{ImageBuffer, Pixel, Rgba, RgbaImage};
 
 use crate::assets;
 
@@ -41,8 +41,7 @@ impl TupleMaths for (i64, i64) {
 
 impl Distance for Vec<(i64, i64)> {
     fn distance(&self) -> f64 {
-        self
-            .iter()
+        self.iter()
             .zip(self.iter().skip(1))
             .map(|(from, to)| from.distance(to))
             .sum()
@@ -68,15 +67,21 @@ impl Night for DateTime<Utc> {
 
         match current_hour {
             h if h >= night_max || h <= day_start => 1.0,
-            h if h >= night_start => ((h - night_start) as f32) / ((night_max - night_start) as f32),
+            h if h >= night_start => {
+                ((h - night_start) as f32) / ((night_max - night_start) as f32)
+            }
             h if h <= day_max => ((day_max - h) as f32) / ((day_max - day_start) as f32),
-            _ => 0.0
+            _ => 0.0,
         }
     }
 }
 
 fn seasonal_map(date: DateTime<Utc>) -> RgbaImage {
-    if date.is_winter() { assets::MAP_WINTER.clone() } else { assets::MAP.clone() }
+    if date.is_winter() {
+        assets::MAP_WINTER.clone()
+    } else {
+        assets::MAP.clone()
+    }
 }
 
 fn mask_map(date: DateTime<Utc>, base_map: &mut RgbaImage) {
@@ -94,7 +99,6 @@ fn mask_map(date: DateTime<Utc>, base_map: &mut RgbaImage) {
         ((b as f32) + (((a as f32) - (b as f32)) * gradient_value).round()) as u8
     });
     let alpha = gradient_end.channels()[3];
-
 
     // let current_gradient = (gradient_end - gradient_start) / gradient_value;
     base_map.pixels_mut().for_each(|p| {
@@ -118,33 +122,44 @@ fn class_icon(class: &str) -> &RgbaImage {
         "ARCHER" => &assets::ARCHER_ICON as &RgbaImage,
         "KNIGHT" => &assets::KNIGHT_ICON as &RgbaImage,
         "MAGE" => &assets::WIZARD_ICON as &RgbaImage,
-        _ => &assets::TRAVELER_ICON as &RgbaImage
+        _ => &assets::TRAVELER_ICON as &RgbaImage,
     }
 }
 
 pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
     let mut map = map_image();
 
-
     let config = &assets::CITY_CONFIG;
 
-    let city_path = config.cities.get(origin).ok_or(format!("Cannot find the city {}", origin))?;
+    let city_path = config
+        .cities
+        .get(origin)
+        .ok_or(format!("Cannot find the city {}", origin))?;
     overlay(&mut map, class_icon(class), city_path.0, city_path.1);
 
     Ok(map)
 }
 
-pub fn draw_traveling(origin: &str, destination: &str, progress: u8, class: &str) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
+pub fn draw_traveling(
+    origin: &str,
+    destination: &str,
+    progress: u8,
+    class: &str,
+) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
     let mut map = map_image();
     let config = &assets::CITY_CONFIG;
 
     let (key, reverse) = match origin.cmp(destination) {
         Ordering::Equal => return Err(String::from("Cannot travel from and to same place")),
         Ordering::Greater => (format!("{}:{}", destination, origin), true),
-        Ordering::Less => (format!("{}:{}", origin, destination), false)
+        Ordering::Less => (format!("{}:{}", origin, destination), false),
     };
 
-    let mut path = config.paths.get(key.as_str()).ok_or(format!("Cannot find the path {}", key))?.clone();
+    let mut path = config
+        .paths
+        .get(key.as_str())
+        .ok_or(format!("Cannot find the path {}", key))?
+        .clone();
 
     if reverse {
         path.reverse();
