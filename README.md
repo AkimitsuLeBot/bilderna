@@ -1,7 +1,7 @@
 # Bilderna
 
 <h4 align="center">
-    <a href="https://akimitsu.xyz" > Website </a> | <a href="https://discord.gg/RMSZ5MY" > Discord </a>
+    <a href="https://discord.gg/RMSZ5MY" > Discord </a>
 </h4>
 
 <div align="center">    
