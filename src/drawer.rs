@@ -67,10 +67,8 @@ impl Night for DateTime<Utc> {
 
         match current_hour {
             h if h >= night_max || h <= day_start => 1.0,
-            h if h >= night_start => {
-                ((h - night_start) as f32) / ((night_max - night_start) as f32)
-            }
-            h if h <= day_max => ((day_max - h) as f32) / ((day_max - day_start) as f32),
+            h if h >= night_start => (h - night_start) / (night_max - night_start),
+            h if h <= day_max => (day_max - h) / (day_max - day_start),
             _ => 0.0,
         }
     }
@@ -102,7 +100,7 @@ fn mask_map(date: DateTime<Utc>, base_map: &mut RgbaImage) {
 
     // let current_gradient = (gradient_end - gradient_start) / gradient_value;
     base_map.pixels_mut().for_each(|p| {
-        let mut blend = mask.next().unwrap().clone();
+        let mut blend = *mask.next().unwrap();
         let prev_alpha = blend.channels()[3];
         blend.blend(&gradient_end);
         blend.channels_mut()[3] = min(alpha, prev_alpha);
