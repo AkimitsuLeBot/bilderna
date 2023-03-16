@@ -1,7 +1,7 @@
 # Bilderna
 
 <h4 align="center">
-    <a href="https://discord.com/invite/pixelax" > Discord </a>
+    <a href="https://discord.com/pixelax" > Discord </a>
 </h4>
 
 <div align="center">    
