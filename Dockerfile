@@ -1,5 +1,5 @@
 # Builder phase
-FROM rust:1.70 as builder
+FROM rust:1.71 as builder
 WORKDIR /usr/src/bilderna
 
 COPY . .
