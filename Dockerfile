@@ -1,5 +1,5 @@
 # Builder phase
-FROM rust:1.72 as builder
+FROM rust:1.72-bookworm as builder
 WORKDIR /usr/src/bilderna
 
 COPY . .
@@ -8,7 +8,7 @@ RUN cargo install --path .
 
 
 # Bundle phase
-FROM debian:buster-slim
+FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y curl
 
