@@ -11,7 +11,7 @@ jobs:
         name: Publish - Docker hub
         if: |
             github.event.workflow_run.conclusion == 'success'
-            && !contains(github.event.workflow_run.sender, 'renovate[bot]')
+            && github.event.workflow_run.actor.type != 'Bot'
         runs-on: ubuntu-latest
         timeout-minutes: 10
         env:
