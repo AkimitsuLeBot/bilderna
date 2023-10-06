@@ -1,5 +1,5 @@
 # Builder phase
-FROM rust:1.72-bookworm as builder
+FROM rust:1.73-bookworm as builder
 WORKDIR /usr/src/bilderna
 
 COPY . .
