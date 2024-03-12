@@ -22,7 +22,7 @@ pub struct InCityInfo {
 fn send_image(img: ImageBuffer<Rgba<u8>, Vec<u8>>) -> HttpResponse {
     let mut bytes: Vec<u8> = Vec::new();
     DynamicImage::ImageRgba8(img)
-        .write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png)
+        .write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Png)
         .map(|_| HttpResponse::Ok().content_type("image/png").body(bytes))
         .unwrap_or_else(|e| {
             HttpResponse::InternalServerError()
