@@ -6,6 +6,11 @@ use image::{ImageBuffer, Pixel, Rgba, RgbaImage};
 
 use crate::assets;
 
+const NIGHT_START: f32 = 19.0;
+const NIGHT_MAX: f32 = 23.0;
+const DAY_START: f32 = 5.0;
+const DAY_MAX: f32 = 8.0;
+
 trait TupleMaths {
     fn distance(&self, other: &(i64, i64)) -> f64;
 
@@ -58,17 +63,12 @@ impl Winter for DateTime<Utc> {
 
 impl Night for DateTime<Utc> {
     fn night_progress(&self) -> f32 {
-        let night_start = 20.0;
-        let night_max = 23.0;
-        let day_start = 5.0;
-        let day_max = 8.0;
-
         let current_hour = (self.hour() as f32) + (self.minute() as f32) / 60.0;
 
         match current_hour {
-            h if h >= night_max || h <= day_start => 1.0,
-            h if h >= night_start => (h - night_start) / (night_max - night_start),
-            h if h <= day_max => (day_max - h) / (day_max - day_start),
+            h if h >= NIGHT_MAX || h <= DAY_START => 1.0,
+            h if h >= NIGHT_START => (h - NIGHT_START) / (NIGHT_MAX - NIGHT_START),
+            h if h <= DAY_MAX => (DAY_MAX - h) / (DAY_MAX - DAY_START),
             _ => 0.0,
         }
     }
