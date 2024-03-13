@@ -1,22 +1,19 @@
-# Builder phase
-FROM rust:1.76-bookworm as builder
+FROM clux/muslrust:1.76.0-stable as builder
 WORKDIR /usr/src/bilderna
 
 COPY . .
 
-RUN cargo install --path .
+RUN cargo build --target x86_64-unknown-linux-musl --release && \
+    mkdir -p /build-out && \
+    cp target/x86_64-unknown-linux-musl/release/bilderna /build-out/
 
 
-# Bundle phase
-FROM debian:bookworm
+FROM scratch
 
-RUN apt-get update && apt-get install -y curl
-
-COPY --from=builder /usr/local/cargo/bin/bilderna /usr/local/bin/bilderna
+COPY --from=builder /build-out/bilderna /bilderna
 
 COPY ./assets ./assets
 
-HEALTHCHECK --interval=5m --timeout=3s \
-    CMD curl -f http://localhost:3000/ping || exit 1
+HEALTHCHECK --interval=5m --timeout=3s CMD /bilderna check
 
-CMD ["bilderna"]
+ENTRYPOINT ["/bilderna"]
