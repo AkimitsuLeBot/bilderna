@@ -14,6 +14,7 @@ COPY --from=builder /build-out/bilderna /bilderna
 
 COPY ./assets ./assets
 
-HEALTHCHECK --interval=5m --timeout=3s CMD /bilderna check
+HEALTHCHECK --interval=1m --timeout=3s \
+    CMD ["./bilderna", "check"]
 
 ENTRYPOINT ["/bilderna"]
