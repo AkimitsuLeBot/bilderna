@@ -22,11 +22,7 @@ async fn healthcheck() -> bool {
 async fn main() -> std::io::Result<()> {
     if env::args().any(|v| v == "check") {
         let alive = healthcheck().await;
-        return if !alive {
-            std::process::exit(1)
-        } else {
-            Ok(())
-        };
+        return if alive { Ok(()) } else { std::process::exit(1) };
     }
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));

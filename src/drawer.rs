@@ -1,15 +1,14 @@
-use std::cmp::{min, Ordering};
-
 use chrono::{DateTime, Datelike, Timelike, Utc};
 use image::imageops::overlay;
 use image::{ImageBuffer, Pixel, Rgba, RgbaImage};
+use std::cmp::{min, Ordering};
 
 use crate::assets;
 
-const NIGHT_START: f32 = 19.0;
-const NIGHT_MAX: f32 = 23.0;
-const DAY_START: f32 = 5.0;
-const DAY_MAX: f32 = 8.0;
+const NIGHT_START: f64 = 19.0;
+const NIGHT_MAX: f64 = 23.0;
+const DAY_START: f64 = 5.0;
+const DAY_MAX: f64 = 8.0;
 
 trait TupleMaths {
     fn distance(&self, other: &(i64, i64)) -> f64;
@@ -26,7 +25,7 @@ trait Winter {
 }
 
 trait Night {
-    fn night_progress(&self) -> f32;
+    fn night_progress(&self) -> f64;
 }
 
 impl TupleMaths for (i64, i64) {
@@ -38,9 +37,9 @@ impl TupleMaths for (i64, i64) {
         let x_diff = (to.0 - self.0) as f64;
         let y_diff = (to.1 - self.1) as f64;
         let steep = y_diff / x_diff;
-        let nwx = self.0 as f64 + x_diff * cut;
-        let nwy = self.1 as f64 + (x_diff * cut) * steep;
-        (nwx.round() as i64, nwy.round() as i64)
+        let nw_x = self.0 as f64 + x_diff * cut;
+        let nw_y = self.1 as f64 + (x_diff * cut) * steep;
+        (nw_x.round() as i64, nw_y.round() as i64)
     }
 }
 
@@ -62,8 +61,8 @@ impl Winter for DateTime<Utc> {
 }
 
 impl Night for DateTime<Utc> {
-    fn night_progress(&self) -> f32 {
-        let current_hour = (self.hour() as f32) + (self.minute() as f32) / 60.0;
+    fn night_progress(&self) -> f64 {
+        let current_hour = (f64::from(self.hour())) + f64::from(self.minute()) / 60.0;
 
         match current_hour {
             h if h >= NIGHT_MAX || h <= DAY_START => 1.0,
@@ -76,9 +75,9 @@ impl Night for DateTime<Utc> {
 
 fn seasonal_map(date: DateTime<Utc>) -> RgbaImage {
     if date.is_winter() {
-        assets::MAP_WINTER.clone()
+        assets::map_winter().clone()
     } else {
-        assets::MAP.clone()
+        assets::map().clone()
     }
 }
 
@@ -91,10 +90,10 @@ fn mask_map(date: DateTime<Utc>, base_map: &mut RgbaImage) {
     let gradient_start = Rgba([5, 2, 6, 0]);
     let mut gradient_end = Rgba([0, 1, 3, 240]);
 
-    let mut mask = (&assets::MAP_MASK as &RgbaImage).pixels();
+    let mut mask = assets::map_mask().pixels();
 
     gradient_end.apply2(&gradient_start, |a, b| {
-        ((b as f32) + (((a as f32) - (b as f32)) * gradient_value).round()) as u8
+        (f64::from(b) + ((f64::from(a) - f64::from(b)) * gradient_value).round()) as u8
     });
     let alpha = gradient_end.channels()[3];
 
@@ -117,27 +116,33 @@ fn map_image() -> RgbaImage {
 
 fn class_icon(class: &str) -> &RgbaImage {
     match class {
-        "ARCHER" => &assets::ARCHER_ICON as &RgbaImage,
-        "KNIGHT" => &assets::KNIGHT_ICON as &RgbaImage,
-        "MAGE" => &assets::WIZARD_ICON as &RgbaImage,
-        _ => &assets::TRAVELER_ICON as &RgbaImage,
+        "ARCHER" => assets::archer_icon(),
+        "KNIGHT" => assets::knight_icon(),
+        "MAGE" => assets::wizard_icon(),
+        _ => assets::traveler_icon(),
     }
 }
 
+/// # Errors
+///
+/// Will return `Err` when the origin name isn't found
 pub fn draw_in_city(origin: &str, class: &str) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
     let mut map = map_image();
 
-    let config = &assets::CITY_CONFIG;
+    let config = &assets::city_config();
 
     let city_path = config
         .cities
         .get(origin)
-        .ok_or(format!("Cannot find the city {}", origin))?;
+        .ok_or(format!("Cannot find the city {origin}"))?;
     overlay(&mut map, class_icon(class), city_path.0, city_path.1);
 
     Ok(map)
 }
 
+/// # Errors
+///
+/// Returns and error when the path isn't found
 pub fn draw_traveling(
     origin: &str,
     destination: &str,
@@ -145,25 +150,25 @@ pub fn draw_traveling(
     class: &str,
 ) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, String> {
     let mut map = map_image();
-    let config = &assets::CITY_CONFIG;
+    let config = &assets::city_config();
 
     let (key, reverse) = match origin.cmp(destination) {
         Ordering::Equal => return Err(String::from("Cannot travel from and to same place")),
-        Ordering::Greater => (format!("{}:{}", destination, origin), true),
-        Ordering::Less => (format!("{}:{}", origin, destination), false),
+        Ordering::Greater => (format!("{origin}:{destination}"), true),
+        Ordering::Less => (format!("{origin}:{destination}"), false),
     };
 
     let mut path = config
         .paths
         .get(key.as_str())
-        .ok_or(format!("Cannot find the path {}", key))?
+        .ok_or(format!("Cannot find the path {key}"))?
         .clone();
 
     if reverse {
         path.reverse();
     }
     let total = path.distance();
-    let mut max_dist = total * (progress as f64) / 100.0;
+    let mut max_dist = total * f64::from(progress) / 100.0;
 
     path.iter().zip(path.iter().skip(1)).for_each(|(from, to)| {
         let dist = from.distance(to);

@@ -23,12 +23,14 @@ fn send_image(img: ImageBuffer<Rgba<u8>, Vec<u8>>) -> HttpResponse {
     let mut bytes: Vec<u8> = Vec::new();
     DynamicImage::ImageRgba8(img)
         .write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Png)
-        .map(|_| HttpResponse::Ok().content_type("image/png").body(bytes))
-        .unwrap_or_else(|e| {
-            HttpResponse::InternalServerError()
-                .append_header(("error", e.to_string()))
-                .finish()
-        })
+        .map_or_else(
+            |e| {
+                HttpResponse::InternalServerError()
+                    .append_header(("error", e.to_string()))
+                    .finish()
+            },
+            |()| HttpResponse::Ok().content_type("image/png").body(bytes),
+        )
 }
 
 pub async fn traveling(info: web::Json<TravelingInfo>) -> impl Responder {
@@ -44,22 +46,25 @@ pub async fn traveling(info: web::Json<TravelingInfo>) -> impl Responder {
         info.progress,
         info.class.as_str(),
     )
-    .map(send_image)
-    .unwrap_or_else(|e| {
-        HttpResponse::BadRequest()
-            .append_header(("error", e))
-            .finish()
-    })
-}
-
-pub async fn in_city(info: web::Json<InCityInfo>) -> impl Responder {
-    draw_in_city(info.origin.as_str(), info.class.as_str())
-        .map(send_image)
-        .unwrap_or_else(|e| {
+    .map_or_else(
+        |e| {
             HttpResponse::BadRequest()
                 .append_header(("error", e))
                 .finish()
-        })
+        },
+        send_image,
+    )
+}
+
+pub async fn in_city(info: web::Json<InCityInfo>) -> impl Responder {
+    draw_in_city(info.origin.as_str(), info.class.as_str()).map_or_else(
+        |e| {
+            HttpResponse::BadRequest()
+                .append_header(("error", e))
+                .finish()
+        },
+        send_image,
+    )
 }
 
 pub async fn ping() -> impl Responder {
