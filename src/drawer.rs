@@ -154,7 +154,7 @@ pub fn draw_traveling(
 
     let (key, reverse) = match origin.cmp(destination) {
         Ordering::Equal => return Err(String::from("Cannot travel from and to same place")),
-        Ordering::Greater => (format!("{origin}:{destination}"), true),
+        Ordering::Greater => (format!("{destination}:{origin}"), true),
         Ordering::Less => (format!("{origin}:{destination}"), false),
     };
 
