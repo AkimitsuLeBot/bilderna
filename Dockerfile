@@ -1,4 +1,4 @@
-FROM clux/muslrust:1.85.0-stable AS builder
+FROM clux/muslrust:1.85.1-stable AS builder
 WORKDIR /usr/src/bilderna
 
 COPY . .
